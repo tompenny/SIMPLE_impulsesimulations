@@ -18,9 +18,17 @@ def transfer_function2(w, w0, y0, yfb, rnd, rnd2):
     return A*chi*(rnd+1j*rnd2)
 
 
-def impulse_resp(time, t0, A, y, w0):
+def impulse_resp(time, t0, A, y0, yfb, w0):
+    """
+    Generates impulse response for particle
+    t0: impulse time in s - recommend doing half way through the trace
+    A: response amplitude - in m
+    w0: natural frequency of particle
+    y0: intrinsic damping of particle (gas and/or laser)
+    yfb: Additional damping from cold feedback mechanism
+    """
     output = np.zeros(len(time))
-    y1 = y/2 # factor two required by definition
+    y1 = (y0+yfb)/2 # factor two required by definition
     w1 = np.sqrt(w0**2 - y1**2)
     for n, t in enumerate(time):
         if t < t0:
@@ -29,7 +37,7 @@ def impulse_resp(time, t0, A, y, w0):
             output[n] =  A*np.sin(w1*(t-t0))*np.exp(-y1*(t-t0))
     return output
 
-def generate_displacement(w, w0, y0, yfb, rnd, rnd2, rnd3, t0, A):
+def generate_displacement(w, w0, y0, yfb, rnd, rnd2, rnd3, ir):
     """
     Generates the frequency domain response of a particle then reverse fourier transforms to the time domain
     Adds an impulse response and imprecision noise in the time domain
@@ -39,15 +47,13 @@ def generate_displacement(w, w0, y0, yfb, rnd, rnd2, rnd3, t0, A):
     y0: intrinsic damping of particle (gas and/or laser)
     yfb: Additional damping from cold feedback mechanism
     rnd and rnd2: Noise for fourier domain - should each have 0 mean and 1/sqrt(2) width I think
-    rnd3: imprecision noise - should be 0 mean with width of Snn/2/dtn where Snn of single-sided PSD noise value in m^2/Hz and dtn is timestep in s (2/(max frequency in Hz))
-    t0: impulse time in s - recommend doing half way through the trace
-    A: response amplitude - in m
+    rnd3: imprecision noise - should be 0 mean with width of Snn/2/dtn where Snn of single-sided PSD noise value in m^2/Hz and dtn is timestep in s (1/(2*(max frequency in Hz)))
+    ir: impulse response - must have same number of points as 2*len(w)
     """
     numbins = len(w)
 
     # Generate impulse response
     time = np.linspace(0, numbins/5/10**5/2, numbins)
-    ir = impulse_resp(time, t0, A, y0+yfb, w0)
 
     # Generate frequency response of particle
     thermal_response = transfer_function2(w, w0, y0, yfb, rnd, rnd2)
@@ -57,3 +63,19 @@ def generate_displacement(w, w0, y0, yfb, rnd, rnd2, rnd3, t0, A):
     x += rnd3 # Add measurement noise
 
     return time, x, ir
+
+def generate_random_numbers(seeds, Snn, numbins, maxw):
+    """
+    Generates a set of random numbers of correct wdith and mean for generate displacement functions
+    seeds: seeds for random numbers - should all be different
+    Snn: Value of single-sided PSD of noise in m^2/Hz
+    numbins: number of frequency bins
+    maxw: maximum frequency in frequency domain in rad/s
+    """
+    np.random.seed(seeds[0])
+    randomlist = np.random.normal(0, 0.5*np.sqrt(2), numbins)
+    np.random.seed(seeds[1])
+    randomlist2 = np.random.normal(0, 0.5*np.sqrt(2), numbins)
+    np.random.seed(seeds[2])
+    randomlist3 = np.random.normal(0, np.sqrt(Snn*maxw), numbins)
+    return randomlist, randomlist2, randomlist3
