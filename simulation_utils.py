@@ -54,7 +54,7 @@ def generate_displacement(w, w0, y0, yfb, rnd, rnd2, rnd3, ir):
     """
     Generates the frequency domain response of a particle then reverse fourier transforms to the time domain
     Adds an impulse response and imprecision noise in the time domain
-    Returns time displacement and the independent impulse response
+    Returns displacement
     w: frequency bins for frequency domain response
     w0: natural frequency of particle
     y0: intrinsic damping of particle (gas and/or laser)
@@ -63,19 +63,16 @@ def generate_displacement(w, w0, y0, yfb, rnd, rnd2, rnd3, ir):
     rnd3: imprecision noise - should be 0 mean with width of Snn/2/dtn where Snn of single-sided PSD noise value in m^2/Hz and dtn is timestep in s (1/(2*(max frequency in Hz)))
     ir: impulse response - must have same number of points as 2*len(w)
     """
+
     numbins = len(w)
-
-    # Generate impulse response
-    time = np.linspace(0, numbins/5/10**5/2, numbins)
-
     # Generate frequency response of particle
     thermal_response = transfer_function2(w, w0, y0, yfb, rnd, rnd2)
-    x = np.fft.irfft(thermal_response)[int(numbins/2-1):-int(numbins/2-1)] # Reverse fourier transform to time domain
+    x = np.fft.irfft(thermal_response)[int(numbins/2-1):-int(numbins/2-1)] # Reverse fourier transform to time domain and throw away start and end to get rid of finite time effects
     x = x*np.sqrt(np.trapz(np.abs(thermal_response**2), w/2/np.pi)/np.var(x)) # Scale to correct units
     x += ir # Add impulse response
     x += rnd3 # Add measurement noise
 
-    return time, x, ir
+    return x
 
 def generate_random_numbers(seeds, Snn, numbins, maxw):
     """
