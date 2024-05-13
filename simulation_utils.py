@@ -1,9 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.signal as scisig
-import scipy.optimize as opt
-from numba import njit, jit
-import scipy.io as sio
 
 def transfer_function(w, w0, y0, yfb):
     """
