@@ -6,13 +6,26 @@ from numba import njit, jit
 import scipy.io as sio
 
 def transfer_function(w, w0, y0, yfb):
-    # Exact transfer function of particle
+    """
+    Exact transfer function of particle
+    w: frequency bins for frequency domain response
+    w0: natural frequency of particle
+    y0: intrinsic damping of particle (gas and/or laser)
+    yfb: Additional damping from cold feedback mechanism
+    """
     A = np.sqrt(4*kb*T*y0*M)
     chi = (M*(w0**2-w**2-1j*w*(y0+yfb)))**(-1)
     return A*chi
 
 def transfer_function2(w, w0, y0, yfb, rnd, rnd2):
-    # Transfer function of particle with noise for finite time measurement
+    """
+    Transfer function of particle with noise for finite time measurement
+    w: frequency bins for frequency domain response
+    w0: natural frequency of particle
+    y0: intrinsic damping of particle (gas and/or laser)
+    yfb: Additional damping from cold feedback mechanism
+    rnd and rnd2: Noise for fourier domain - should each have 0 mean and 1/sqrt(2) width I think
+    """
     A = np.sqrt(4*kb*T*y0*M)
     chi = (M*(w0**2-w**2-1j*w*(y0+yfb)))**(-1)
     return A*chi*(rnd+1j*rnd2)
