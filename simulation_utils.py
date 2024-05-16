@@ -93,3 +93,37 @@ def generate_random_numbers(seeds, Snn, numbins, maxw):
     np.random.seed(int(seeds[2]))
     randomlist3 = np.random.normal(0, np.sqrt(Snn*maxw), numbins)
     return randomlist, randomlist2, randomlist3
+
+def frequency_modulation(x, time, time2):
+    """
+    Mimics frequency modulation of an oscillator by modulating the time between points of a fixed frequency oscillator then interpolating back to a fixed time interval.
+    Note: I think this will only work for smooth and small changes to the frequency since the interpolation back to fixed time is linear. I have not tested the limits of this.
+    x: displacement to be modulated
+    time: time base of data
+    time2: modulated time base
+    """
+
+    x_mod = np.interp(time, time2, x)
+    return x_mod
+
+
+def generate_sawtooth_frequency_modulation(time, iter, phase):
+    """
+    Mimics frequency modulation of an oscillator by modulating the time between points of a fixed frequency oscillator.
+    The modulation is a single cycle symmetric sawtooth function with an adjustable phase.
+    Note: I think this will only work for smooth and small changes to the frequency since the interpolation back to fixed time is linear. I have not tested the limits of this.
+    time: time base of data
+    iter: modulation depth. Frequency will be modulated by +-iter*w0 
+    phase: starting phase of the sawtooth modulation expressed in normalised period. i.e. 0 will start at minimum frequency and go positive, 0.5 will start at max frequency and go negative 
+    """
+
+    ht = int(len(time)/2)
+    tmod1 = (1-iter+iter*time[:ht]/time[ht])*time[:ht]
+    tmod2 = (1+3*iter-iter*(time[:ht]+time[ht])/time[ht])*(time[ht:])-0.2*time[ht]
+    time2 = np.concatenate((tmod1, tmod2))
+    t_pos = int(phase*len(time))
+    if 0 < t_pos < len(time):
+        time2 = np.concatenate((time2[t_pos:], time2[-1]+time2[:t_pos]))
+        time2 -= time2[0]
+    return time2
+
