@@ -120,13 +120,51 @@ def generate_sawtooth_frequency_modulation(time, iter, phase):
 
     ht = int(len(time)/2)
     tmod1 = (1-iter+iter*time[:ht]/time[ht])*time[:ht]
-    tmod2 = (1+3*iter-iter*(time[:ht]+time[ht])/time[ht])*(time[ht:])-0.2*time[ht]
+    tmod2 = (1+3*iter-iter*(time[ht:])/time[ht])*(time[ht:])-0.2*time[ht]
     time2 = np.concatenate((tmod1, tmod2))
     t_pos = int(phase*len(time))
     if 0 < t_pos < len(time):
         time2 = np.concatenate((time2[t_pos:], time2[-1]+time2[:t_pos]))
         time2 -= time2[0]
     return time2
+
+def generate_sawtooth_frequency_modulation_impulse(time, iter, phase):
+    """
+    Creates a sawtooth frequency modulations for the impulse response. This directly modulates the frequency in the time domain.
+    time: time base of data
+    iter: modulation depth. Frequency will be modulated by +-iter*w0 
+    phase: starting phase of the sawtooth modulation expressed in normalised period. i.e. 0 will start at minimum frequency and go positive, 0.5 will start at max frequency and go negative 
+    """
+    ht = int(len(time)/2)
+    mod1 = 1-iter+2*iter*time[:ht]/time[ht]
+    mod2 = 1+3*iter-2*iter*(time[ht:])/time[ht]
+    mod = np.concatenate((mod1, mod2))
+    t_pos = int(phase*len(time))
+    if 0 < t_pos < len(time):
+        mod = np.concatenate((mod[t_pos:], mod[-1]+mod[:t_pos]))
+        mod -= mod[0]
+    return mod
+
+
+def impulse_resp_fm(time, t0, A, y0, yfb, w0, fm):
+    """
+    Generates impulse response for particle that is frequency modulated
+    t0: impulse time in s - recommend doing half way through the trace
+    A: response amplitude - in m
+    w0: natural frequency of particle
+    y0: intrinsic damping of particle (gas and/or laser)
+    yfb: Additional damping from cold feedback mechanism
+    fm: an array describing the frequency modulation
+    """
+    output = np.zeros(len(time))
+    y1 = (y0+yfb)/2 # factor two required by definition
+    w1 = np.sqrt((w0*fm)**2 - y1**2)
+    for n, t in enumerate(time):
+        if t < t0:
+            output[n] = 0
+        if t > t0:
+            output[n] =  A*np.sin(w1*(t-t0))*np.exp(-y1*(t-t0))
+    return output
 
 def save_data_hd5f(filename, data):
     """
