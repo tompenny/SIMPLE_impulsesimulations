@@ -128,16 +128,30 @@ def generate_sawtooth_frequency_modulation(time, iter, phase):
         time2 -= time2[0]
     return time2
 
-def save_data_hd5f(filename, data, datasetname):
+def save_data_hd5f(filename, data):
     """
     Saves data in HDF5. Does it in a simple way by looping through data and datasetnames
     filename: Filename of file you want to save
-    data: the data you want to save
-    datasetname: names of the data sets
+    data: the data you want to save as a dictionary
     """
-    with h5py.File(filename, "a") as f:
+    keys = list(data.keys())
+    with h5py.File(filename, "w") as f:
         for m, j in enumerate(data):
-            dset = f.create_dataset(datasetname[m], data=j)
+            f.create_dataset(keys[m], data=j)
+        f.close()
     return 0
+
+def load_data_hd5f(filename):
+    """
+    Loads data in HDF5. Doesn't load metadata. Outputs as dictionary.
+    filename: Filename of file you want to load
+    """
+    f = h5py.File(filename, "r")
+    keys = list(f.keys())
+    mdict = {}
+    for key in keys:
+        mdict[key] = f[key]
+    f.close()
+    return mdict
     
 
