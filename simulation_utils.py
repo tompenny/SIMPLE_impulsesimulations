@@ -1,4 +1,5 @@
 import numpy as np
+import h5py
 
 def transfer_function(w, w0, y0, yfb, M, T):
     """
@@ -126,4 +127,17 @@ def generate_sawtooth_frequency_modulation(time, iter, phase):
         time2 = np.concatenate((time2[t_pos:], time2[-1]+time2[:t_pos]))
         time2 -= time2[0]
     return time2
+
+def save_data_hd5f(filename, data, datasetname):
+    """
+    Saves data in HDF5. Does it in a simple way by looping through data and datasetnames
+    filename: Filename of file you want to save
+    data: the data you want to save
+    datasetname: names of the data sets
+    """
+    with h5py.File(filename, "a") as f:
+        for m, j in enumerate(data):
+            dset = f.create_dataset(datasetname[m], data=j)
+    return 0
+    
 
