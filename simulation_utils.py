@@ -141,7 +141,7 @@ def generate_sawtooth_frequency_modulation_impulse(time, iter, phase):
     mod = np.concatenate((mod1, mod2))
     t_pos = int(phase*len(time))
     if 0 < t_pos < len(time):
-        mod = np.concatenate((mod[t_pos:], mod[-1]+mod[:t_pos]))
+        mod = np.concatenate((mod[t_pos:], mod[:t_pos]))
         mod -= mod[0]
     return mod
 
