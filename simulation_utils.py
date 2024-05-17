@@ -142,7 +142,7 @@ def generate_sawtooth_frequency_modulation_impulse(time, iter, phase):
     t_pos = int(phase*len(time))
     if 0 < t_pos < len(time):
         mod = np.concatenate((mod[t_pos:], mod[:t_pos]))
-        mod -= mod[0]
+        #mod -= mod[0]-0.9
     return mod
 
 
@@ -163,7 +163,7 @@ def impulse_resp_fm(time, t0, A, y0, yfb, w0, fm):
         if t < t0:
             output[n] = 0
         if t > t0:
-            output[n] =  A*np.sin(w1*(t-t0))*np.exp(-y1*(t-t0))
+            output[n] =  A*np.sin(w1[n]*(t-t0))*np.exp(-y1*(t-t0))
     return output
 
 def generate_displacement_fm(w, w0, y0, yfb, M, T, rnd, rnd2, rnd3, ir, iter, phase):
