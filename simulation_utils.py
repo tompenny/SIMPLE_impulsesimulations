@@ -198,7 +198,7 @@ def generate_displacement_fm(w, w0, y0, yfb, M, T, rnd, rnd2, rnd3, ir, iter, ph
 
     return x
 
-def save_data_hd5f(filename, data):
+def save_data_hdf5(filename, data):
     """
     Saves data in HDF5. Does it in a simple way by looping through data and datasetnames
     filename: Filename of file you want to save
@@ -206,12 +206,12 @@ def save_data_hd5f(filename, data):
     """
     keys = list(data.keys())
     with h5py.File(filename, "w") as f:
-        for m, j in enumerate(data):
-            f.create_dataset(keys[m], data=j)
-        f.close()
+        for key in keys:
+            f[key] = data[key]
+        #f.close()
     return 0
 
-def load_data_hd5f(filename):
+def load_data_hdf5(filename):
     """
     Loads data in HDF5. Doesn't load metadata. Outputs as dictionary.
     filename: Filename of file you want to load
@@ -220,7 +220,8 @@ def load_data_hd5f(filename):
     keys = list(f.keys())
     mdict = {}
     for key in keys:
-        mdict[key] = f[key]
+        dataset = list(f[key])
+        mdict[key] = dataset
     f.close()
     return mdict
     
