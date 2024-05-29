@@ -15,6 +15,17 @@ def Linewidth2(x, a,  x0, gamma, c): #with noise floor
 def Gaussian(x, A, x0, sigma):
     return A*np.exp(-(x-x0)**2/(2*sigma**2))
 
+def impulse_resp(time, t0, A, y, w0):
+    output = np.zeros(len(time))
+    y1 = y/2 # factor two required by definition
+    w1 = np.sqrt(w0**2 - y1**2)
+    for n, t in enumerate(time):
+        if t < t0:
+            output[n] = 0
+        if t > t0:
+            output[n] =  A*np.sin(w1*(t-t0))*np.exp(-y1*(t-t0))
+    return output
+
 from scipy.signal import butter, filtfilt, lfilter
 
 def butter_lowpass(highcut, fs, order=5):
@@ -112,3 +123,20 @@ def load_data_hdf5(filename):
         mdict[key] = dataset
     f.close()
     return mdict
+
+def make_optimal_filter(response_template, noise_template, noise_template_frequency):
+    """
+    Makes optimal filter from response template and noise template
+    response_template: The average response of the oscillator to and impulse, time domain
+    noise_template: The PSD of the oscillator driven by noise processes (in our case usually white noise from gas)
+    noise_template_frequency: Frequency bins of the noise template PSD
+    """
+
+    stilde = np.fft.rfft(response_template)
+    sfreq = np.fft.rfftfreq(len(response_template),d=1e-6)
+    J_out = np.interp(sfreq, noise_template_frequency, noise_template)
+    phi = stilde/J_out
+
+    phi_t = np.fft.irfft(phi)
+    phi_t = phi_t/np.max(phi_t)
+    return phi_t
