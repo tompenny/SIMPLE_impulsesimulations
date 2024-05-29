@@ -4,6 +4,7 @@ import scipy.signal as scisig
 import scipy.optimize as opt
 from numba import njit, jit
 import scipy.io as sio
+import h5py
 
 def Linewidth(x, a,  x0, gamma): #with noise floor
     return a*(gamma)/((x0**2 - x**2)**2+(x*gamma)**2)  
