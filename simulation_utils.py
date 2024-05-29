@@ -209,7 +209,6 @@ def save_data_hdf5(filename, data):
         for key in keys:
             f[key] = data[key]
         #f.close()
-    return 0
 
 def load_data_hdf5(filename):
     """
