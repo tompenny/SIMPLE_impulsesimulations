@@ -140,3 +140,21 @@ def make_optimal_filter(response_template, noise_template, noise_template_freque
     phi_t = np.fft.irfft(phi)
     phi_t = phi_t/np.max(phi_t)
     return phi_t
+
+def make_optimal_filter_ns(response_template, noise_template, noise_template_frequency):
+    """
+    Makes optimal filter from response template and noise template for non-stationary data. Basically just cuts off some low frequency artifacts due to using rectangular window in generating PSD.
+    response_template: The average response of the oscillator to and impulse, time domain
+    noise_template: The PSD of the oscillator driven by noise processes (in our case usually white noise from gas)
+    noise_template_frequency: Frequency bins of the noise template PSD
+    """
+
+    stilde = np.fft.rfft(response_template)
+    sfreq = np.fft.rfftfreq(len(response_template),d=1e-6)
+    J_out = np.interp(sfreq, noise_template_frequency, noise_template)
+    J_out[sfreq<10000] = 10
+    phi = stilde/J_out
+
+    phi_t = np.fft.irfft(phi)
+    phi_t = phi_t/np.max(phi_t)
+    return phi_t
