@@ -85,3 +85,29 @@ def histogram_and_fit(amp_max, bin_num, count_amp, fit = True, plot = True):
         return hist3, bins3, fit3, x_hist3, fitted3
     else: 
         return hist3, bins3
+    
+def save_data_hdf5(filename, data):
+    """
+    Saves data in HDF5. Does it in a simple way by looping through data and datasetnames
+    filename: Filename of file you want to save
+    data: the data you want to save as a dictionary
+    """
+    keys = list(data.keys())
+    with h5py.File(filename, "w") as f:
+        for key in keys:
+            f[key] = data[key]
+        #f.close()
+
+def load_data_hdf5(filename):
+    """
+    Loads data in HDF5. Doesn't load metadata. Outputs as dictionary.
+    filename: Filename of file you want to load
+    """
+    f = h5py.File(filename, "r")
+    keys = list(f.keys())
+    mdict = {}
+    for key in keys:
+        dataset = list(f[key])
+        mdict[key] = dataset
+    f.close()
+    return mdict
