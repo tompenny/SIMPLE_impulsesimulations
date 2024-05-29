@@ -80,6 +80,21 @@ def bandpass_peak_find_noise(filename, cf, BW, fs, order):
     max = x[m]
     return max
 
+def bandpass_peak_find2(filename, cf, BW, fs, order):
+    data = load_data_hdf5(filename)
+    x = data['x']
+    x = butter_bandpass_filter(x, cf-BW, cf+BW, fs = fs, order =order)
+    max = np.max(x)
+    return max
+
+def bandpass_peak_find_noise2(filename, cf, BW, fs, order):
+    data = load_data_hdf5(filename)
+    x = data['x']
+    x = butter_bandpass_filter(x, cf-BW, cf+BW, fs = fs, order = order)
+    m = int(np.random.uniform(0, len(x)))
+    max = x[m]
+    return max
+
 def histogram_and_fit(amp_max, bin_num, count_amp, fit = True, plot = True):
     hist3, bins3 = np.histogram(amp_max, bin_num)
     bin_c = bins3[1:]-(bins3[1]-bins3[0])/2
