@@ -158,3 +158,31 @@ def make_optimal_filter_ns(response_template, noise_template, noise_template_fre
     phi_t = np.fft.irfft(phi)
     phi_t = phi_t/np.max(phi_t)
     return phi_t
+
+def optimal_filter(filter, data):
+    """
+    Applies optimal filter to data and returns the estimated value of the impulse.
+    Does this in the frequency domain for computational efficiency.
+    Only searches for impulse around time of impulse (which in this case is known)
+    Filter: The optimal filter template. The output of make_optimal_filter
+    data: The time domain data in which you want to search for an impulse
+    """
+    dl = len(data)
+    corr_data = np.abs(scisig.correlate(data, filter, mode = 'same'))
+    corr_max = np.max(corr_data[int(dl/2-dl/10):int(dl/2+dl/10)])
+    return corr_max
+
+def optimal_filter_noise(filter, data):
+    """
+    Applies optimal filter to data and returns random value for estimate. Needs to do this to stop search bias in noise.
+    Does this in the frequency domain for computational efficiency.
+    Only searches for impulse around time of impulse (which in this case is known)
+    Filter: The optimal filter template. The output of make_optimal_filter
+    data: The time domain data in which you want to search for an impulse
+    """
+    dl = len(data)
+    corr_data = np.abs(scisig.correlate(data, filter, mode = 'same'))
+    corr_max = np.max(corr_data[int(dl/2-dl/10):int(dl/2+dl/10)])
+    m = int(np.random.uniform(0, dl/5))
+    corr_max = corr_data[int(dl/2-dl/10)+m]
+    return corr_max
