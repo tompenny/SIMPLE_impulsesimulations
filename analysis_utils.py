@@ -253,3 +253,34 @@ def optimal_filter_short_noise(filter, data):
     m = int(np.random.uniform(0, dl/5))
     corr_max = corr_data[int(dl/2-dl/10)+m]
     return corr_max
+
+def lockin(data, fs, demod_freq, BW_pre, BW, BW2, mode):
+    """
+    Lock-in amplifier. Can output X and Y quadratures or R and theta.
+    data: data you want to demodulate
+    fs = sampling frequency of data
+    demod_freq: frequency of the reference
+    BW_pre: BW of bandpass filter of data before lock-in. If 0 then no filter applied
+    BW: bandwidth of lowpass filter on X and Y quadratures
+    BW2: bandwidth of lowpass filter of R and theta quadratures
+    mode: either 'XY' and 'R'. Outputs different quadratures
+    """
+    time = np.array(range(len(data)))/fs
+    demod = np.cos(2*np.pi*demod_freq*time)
+    demod2 = np.sin(2*np.pi*demod_freq*time)
+    if BW_pre != 0:
+            data = butter_bandpass_filter(data, demod_freq - BW_pre, demod_freq + BW_pre, fs, order = 3)
+    X_tt = data*demod
+    Y_tt = data*demod2
+    X_tt_filt = butter_lowpass_filter(X_tt, BW, fs, order = 3)
+    Y_tt_filt = butter_lowpass_filter(Y_tt, BW, fs, order = 3)
+    if mode == 'XY':
+        return time, X_tt_filt, Y_tt_filt
+    elif mode == 'R':
+        R2 = X_tt_filt**2 + Y_tt_filt**2
+        theta = np.unwrap(-2*np.arctan(X_tt_filt[1:]/Y_tt_filt[1:]))/2
+        R2_filt = butter_lowpass_filter(R2, BW2, fs, order = 2)
+        theta_filt = butter_lowpass_filter(theta, BW2, fs, order = 2)
+        return time, R2, R2_filt, theta_filt
+    else:
+        return 0
