@@ -120,7 +120,7 @@ def generate_sawtooth_frequency_modulation(time, iter, phase):
 
     ht = int(len(time)/2)
     tmod1 = (1-iter+iter*time[:ht]/time[ht])*time[:ht]
-    tmod2 = (1+3*iter-iter*(time[ht:])/time[ht])*(time[ht:])-0.2*time[ht]
+    tmod2 = (1+3*iter-iter*(time[ht:])/time[ht])*(time[ht:])-2*iter*time[ht]
     time2 = np.concatenate((tmod1, tmod2))
     t_pos = int(phase*len(time))
     if 0 < t_pos < len(time):
@@ -196,7 +196,7 @@ def generate_displacement_fm(w, w0, y0, yfb, M, T, rnd, rnd2, rnd3, ir, iter, ph
     x += ir # Add impulse response
     x += rnd3 # Add measurement noise
 
-    return x
+    return x, time, time_mod
 
 def save_data_hdf5(filename, data):
     """
