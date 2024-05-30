@@ -6,13 +6,37 @@ from numba import njit, jit
 import scipy.io as sio
 import h5py
 
-def Linewidth(x, a,  x0, gamma): #with noise floor
+def Linewidth(x, a,  x0, gamma):
+    """
+    Function describing the PSD of a damped harmonic oscillator
+    x: Frequency bins of PSD
+    a: amplitude, here this is just a scaling factor for fitting
+    x0: natural frequency of harmonic oscillator
+    gamma: damping of harmonic oscillator
+
+    """
     return a*(gamma)/((x0**2 - x**2)**2+(x*gamma)**2)  
 
-def Linewidth2(x, a,  x0, gamma, c): #with noise floor
+def Linewidth2(x, a,  x0, gamma, c):
+    """
+    Function describing the PSD of a damped harmonic oscillator additional white measurement noise
+    x: Frequency bins of PSD
+    a: amplitude, here this is just a scaling factor for fitting
+    x0: natural frequency of harmonic oscillator
+    gamma: damping of harmonic oscillator
+    c: white measurement noise
+
+    """
     return a*(gamma)/((x0**2 - x**2)**2+(x*gamma)**2) + c
 
 def Gaussian(x, A, x0, sigma):
+    """
+    Gaussian function
+    x: variable to fit Gaussian to
+    A: scaling factor
+    x0: mean
+    sigma: width of gaussian
+    """
     return A*np.exp(-(x-x0)**2/(2*sigma**2))
 
 def impulse_resp(time, t0, A, y, w0):
@@ -190,6 +214,34 @@ def optimal_filter(filter, data):
 def optimal_filter_noise(filter, data):
     """
     Applies optimal filter to data and returns random value for estimate. Needs to do this to stop search bias in noise.
+    Does this in the frequency domain for computational efficiency.
+    Only searches for impulse around time of impulse (which in this case is known)
+    Filter: The optimal filter template. The output of make_optimal_filter
+    data: The time domain data in which you want to search for an impulse
+    """
+    dl = len(data)
+    corr_data = np.abs(scisig.correlate(data, filter, mode = 'same'))
+    corr_max = np.max(corr_data[int(dl/2-dl/10):int(dl/2+dl/10)])
+    m = int(np.random.uniform(0, dl/5))
+    corr_max = corr_data[int(dl/2-dl/10)+m]
+    return corr_max
+
+def optimal_filter_short(filter, data, band):
+    """
+    Applies optimal filter with a restricted template to data and returns the estimated value of the impulse.
+    Does this in the frequency domain for computational efficiency.
+    Only searches for impulse around time of impulse (which in this case is known)
+    Filter: The optimal filter template. The output of make_optimal_filter
+    data: The time domain data in which you want to search for an impulse
+    """
+    dl = len(data)
+    corr_data = np.abs(scisig.correlate(data, filter[int(dl/2-band):int(dl/2+band)], mode = 'same'))
+    corr_max = np.max(corr_data[int(dl/2-dl/10):int(dl/2+dl/10)])
+    return corr_max
+
+def optimal_filter_short_noise(filter, data):
+    """
+    Applies optimal filter to data with a restricted template and returns random value for estimate. Needs to do this to stop search bias in noise.
     Does this in the frequency domain for computational efficiency.
     Only searches for impulse around time of impulse (which in this case is known)
     Filter: The optimal filter template. The output of make_optimal_filter
