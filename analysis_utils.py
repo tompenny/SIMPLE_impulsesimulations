@@ -126,7 +126,7 @@ def histogram_and_fit(amp_max, bin_num, count_amp, fit = True, plot = True):
     std = np.std(amp_max)
     if fit == True:
         fit3, cov3 = opt.curve_fit(Gaussian, bin_c, hist3, p0 = [count_amp, mean, std])
-        x_hist3 = np.linspace(bins3[0], bins3[-1], 100)
+        x_hist3 = np.linspace(bins3[0], bins3[-1], bin_num*10)
         fitted3 = Gaussian(x_hist3, *fit3)
     if plot == True:
         plt.stairs(hist3, bins3)
